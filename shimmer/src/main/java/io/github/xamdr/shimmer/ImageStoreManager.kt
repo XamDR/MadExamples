@@ -4,12 +4,15 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.core.net.toUri
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileNotFoundException
 
 object ImageStoreManager {
 
-	fun saveToInternalStorage(context: Context, uri: Uri, fileName: String): String {
+	@Suppress("BlockingMethodInNonBlockingContext")
+	suspend fun saveToInternalStorage(context: Context, uri: Uri, fileName: String): String = withContext(IO) {
 		context.openFileOutput(fileName, Context.MODE_PRIVATE).use { fos ->
 			context.contentResolver.openInputStream(uri).use {
 				val buffer = ByteArray(1024)
@@ -21,7 +24,7 @@ object ImageStoreManager {
 				fos.flush()
 			}
 		}
-		return context.filesDir.absolutePath
+		context.filesDir.absolutePath
 	}
 
 	fun getImageFromInternalStorage(context: Context, fileName: String, width: Int, height: Int): Bitmap? {

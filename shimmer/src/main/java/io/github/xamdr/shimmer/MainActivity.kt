@@ -6,7 +6,9 @@ import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
 import androidx.documentfile.provider.DocumentFile
+import androidx.lifecycle.lifecycleScope
 import io.github.xamdr.shimmer.databinding.ActivityMainBinding
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -32,11 +34,18 @@ class MainActivity : AppCompatActivity() {
 	private fun addImage(uri: Uri) {
 		binding.shimmerContainer.isVisible = true
 		copyImage(uri)
-		binding.uri = uri
 	}
 
 	private fun copyImage(uri: Uri) {
-		val fileName = "${DocumentFile.fromSingleUri(this, uri)?.simpleName}.jpg"
-		ImageStoreManager.saveToInternalStorage(this, uri, fileName)
+		lifecycleScope.launch {
+			val fileName = "${DocumentFile.fromSingleUri(this@MainActivity, uri)?.simpleName}.jpg"
+			val result = ImageStoreManager.saveToInternalStorage(this@MainActivity, uri, fileName)
+
+			if (result.isNotEmpty()) {
+				binding.shimmerContainer.isVisible = false
+				binding.uri = uri
+				binding.image.isVisible = true
+			}
+		}
 	}
 }
